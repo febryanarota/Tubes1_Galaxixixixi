@@ -35,32 +35,32 @@ public class BotService {
 
     public void computeNextPlayerAction(PlayerAction playerAction) {
         playerAction.action = PlayerActions.FORWARD;
-        GameObject Target;
+        GameObject Target = null;
         if (!gameState.getGameObjects().isEmpty()) {
             
-            List <GameObject> superFoodList = gameState.getGameObjects()
-                    .stream().filter(item -> item.gameObjectType.value == 7)
-                    .sorted(Comparator
-                            .comparing(item -> getDistanceBetween(bot, item)))
-                    .collect(Collectors.toList());
-
-            Target = superFoodList.get(0);
-            playerAction.heading = getHeadingBetween(Target);
+            List <GameObject> superFoodList = nearestObjectList(7);
+            List <GameObject> foodList = nearestObjectList(2);
 
             for (int i = 0; i < superFoodList.size(); i++) { 
-                Target = superFoodList.get(i);
-                GameObject nearestEnemyFromTarget = nearestEnemyFromObject(Target);
-                double enemyToTargetDistance = getDistanceBetween(Target, nearestEnemyFromTarget);
+                GameObject candidate = superFoodList.get(i);
+                GameObject nearestEnemyFromTarget = nearestEnemyFromObject(candidate);
+                double enemyToTargetDistance = getDistanceBetween(candidate, nearestEnemyFromTarget);
     
-                if (enemyToTargetDistance > getDistanceBetween(bot, Target)) { //ini jaraknya blm tau
+                if (enemyToTargetDistance > getDistanceBetween(bot, candidate)) { 
+                    Target = candidate;
                     playerAction.heading = getHeadingBetween(Target);
                     break;
                 } else {
                     if (nearestEnemyFromTarget.size < bot.size) {
+                        Target = candidate;
                         playerAction.heading = getHeadingBetween(Target);
                         break;
                     }
                 }
+            }
+
+            if (Target == null) {
+
             }
 
             
@@ -108,23 +108,14 @@ public class BotService {
         return object.get(0);
     }
 
-    private double nearestObjectDistance (int n, GameObject target) {
-        List <GameObject> object = new ArrayList<>();
-        object = gameState.getGameObjects().stream().filter(item-> item.gameObjectType.value == n).sorted(Comparator.comparing(thing -> getDistanceBetween(target, thing))).collect(Collectors.toList());
-        return getDistanceBetween(target, object.get(0));
+    private List<GameObject> nearestObjectList (int n) {
+        List <GameObject> object = gameState.getGameObjects().stream()
+            .filter(item-> item.gameObjectType.value == n)
+            .sorted(Comparator.comparing(item -> getDistanceBetween(bot, item)))
+            .collect(Collectors.toList());
+        return object;
     }
-    // private GameObject detectObjectNearby(int n){
-    //     List <GameObject> object = new ArrayList<>();
-    //     if(!gameState.getGameObjects().isEmpty()){
-    //         object = gameState.getGameObjects().stream().filter(thing -> (!thing.id.equals(bot.id) && thing.gameObjectType.value == n)).sorted(Comparator.comparing(thing -> getDistanceBetween(bot, thing))).collect(Collectors.toList());
-    //     }
-    //     return object;
-    // }
-    
-    // private double getDistanceEnemy(GameObject object1, GameObject object2) {
-    //     return getDistanceBetween(object1, object2) - object1.getRadius() - object2.getRadius();
-    // }
-    
+
 
 
 
