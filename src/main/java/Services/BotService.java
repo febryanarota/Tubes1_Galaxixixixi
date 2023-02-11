@@ -35,17 +35,37 @@ public class BotService {
 
     public void computeNextPlayerAction(PlayerAction playerAction) {
         playerAction.action = PlayerActions.FORWARD;
-        playerAction.heading = new Random().nextInt(360);
-
+        GameObject Target = null;
         if (!gameState.getGameObjects().isEmpty()) {
-            var foodList = gameState.getGameObjects()
-                    .stream().filter(item -> item.getGameObjectType() == ObjectTypes.FOOD)
-                    .sorted(Comparator
-                            .comparing(item -> getDistanceBetween(bot, item)))
-                    .collect(Collectors.toList());
+            
+            List <GameObject> superFoodList = nearestObjectList(7);
+            List <GameObject> foodList = nearestObjectList(2);
 
-            playerAction.heading = getHeadingBetween(foodList.get(0));
+            for (int i = 0; i < superFoodList.size(); i++) { 
+                GameObject candidate = superFoodList.get(i);
+                GameObject nearestEnemyFromTarget = nearestEnemyFromObject(candidate);
+                double enemyToTargetDistance = getDistanceBetween(candidate, nearestEnemyFromTarget);
+    
+                if (enemyToTargetDistance > getDistanceBetween(bot, candidate)) { 
+                    Target = candidate;
+                    playerAction.heading = getHeadingBetween(Target);
+                    break;
+                } else {
+                    if (nearestEnemyFromTarget.size < bot.size) {
+                        Target = candidate;
+                        playerAction.heading = getHeadingBetween(Target);
+                        break;
+                    }
+                }
+            }
+
+            if (Target == null) {
+
+            }
+
+            
         }
+
 
         this.playerAction = playerAction;
     }
@@ -67,7 +87,7 @@ public class BotService {
     private double getDistanceBetween(GameObject object1, GameObject object2) {
         var triangleX = Math.abs(object1.getPosition().x - object2.getPosition().x);
         var triangleY = Math.abs(object1.getPosition().y - object2.getPosition().y);
-        return Math.sqrt(triangleX * triangleX + triangleY * triangleY);
+        return Math.sqrt(triangleX * triangleX + triangleY * triangleY) - object1.size - object2.size + 1;
     }
 
     private int getHeadingBetween(GameObject otherObject) {
@@ -79,6 +99,33 @@ public class BotService {
     private int toDegrees(double v) {
         return (int) (v * (180 / Math.PI));
     }
+
+    private GameObject nearestEnemyFromObject(GameObject x) {    
+        List <GameObject> object = gameState.getPlayerGameObjects().stream()
+            .filter(item-> item.id != x.id)
+            .sorted(Comparator.comparing(item -> getDistanceBetween(x, item)))
+            .collect(Collectors.toList());
+        return object.get(0);
+    }
+
+    private List<GameObject> nearestObjectList (int n) {
+        List <GameObject> object = gameState.getGameObjects().stream()
+            .filter(item-> item.gameObjectType.value == n)
+            .sorted(Comparator.comparing(item -> getDistanceBetween(bot, item)))
+            .collect(Collectors.toList());
+        return object;
+    }
+
+
+
+
+    
+
+
+
+
+
+
 
 
 }
