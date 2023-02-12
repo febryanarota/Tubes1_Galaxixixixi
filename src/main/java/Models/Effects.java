@@ -8,3 +8,7 @@ public class Effects {
     public static Integer SUPER_FOOD = 8;
     public static Integer SHIELD = 16;
 }
+
+
+
+
