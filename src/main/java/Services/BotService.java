@@ -167,6 +167,100 @@ public class BotService {
         return object;
     }
 
+    private int calculateHeadingRange(GameObject object1, GameObject object2) {
+        int sizey = object2.getSize();
+        var triangleX = Math.abs(object1.getPosition().x - object2.getPosition().x);
+        var triangleY = Math.abs(object1.getPosition().y - object2.getPosition().y);
+        var o1o2 = Math.sqrt(triangleX * triangleX + triangleY * triangleY); // jarak antara 2 pusat objek
+        int deg = toDegrees(Math.asin(sizey / o1o2));
+
+        return deg; // return heading range for object 1 to hit object 2 (range : (heading between -
+                    // deg)%360 - (heading between+deg)%360 )
+
+    }
+
+    private double c1c2(GameObject object1, GameObject object2) {
+        boolean intersect = false;
+        int r1 = object1.getSize();
+        int r2 = object2.getSize();
+        int x1 = object1.getPosition().getX();
+        int y1 = object1.getPosition().getY();
+        int x2 = object2.getPosition().getX();
+        int y2 = object2.getPosition().getY();
+        double d = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+        return d;
+    }
+
+    private boolean isIntersect(GameObject object1, GameObject object2, double d) {
+        int r1 = object1.getSize();
+        int r2 = object2.getSize();
+        return (d < (r1 + r2));
+    }
+
+    private boolean object1IsIn(GameObject object1, GameObject object2, double d) {
+        int r1 = object1.getSize();
+        int r2 = object2.getSize();
+        return (d <= (r2 - r1));
+    }
+
+    private void escapeInGass(GameObject gasAsteroid, PlayerAction playerAction, int code) {
+        // hitung jarak terdekat bot keluar dari gasscloud (lingkaran)
+
+        var triangleX = Math.abs(gasAsteroid.getPosition().x - bot.getPosition().x);
+        var triangleY = Math.abs(gasAsteroid.getPosition().y - gasAsteroid.getPosition().y);
+        var o1o2 = Math.sqrt(triangleX * triangleX + triangleY * triangleY);
+
+        double jarakTerdekat = gasAsteroid.getSize() - o1o2 + bot.getSize();
+        playerAction.heading = 180 - (toDegrees(Math.atan2(gasAsteroid.getPosition().y - bot.getPosition().y,
+                gasAsteroid.getPosition().x - bot.getPosition().x) + 360) % 360);
+        GameObject temp = bot;
+
+        if (jarakTerdekat > bot.speed) {
+            // ini klo mempertimbangkan klo dia jln kena gass yg lain ga
+            // int xtemp = (int)
+            // (Math.round((Math.cos(Math.toRadians(playerAction.heading))) *
+            // temp.getSpeed()))
+            // + temp.getPosition().getX();
+            // int ytemp = (int) Math.round(Math.sqrt(temp.getSpeed() * temp.getSpeed()
+            // - (xtemp - temp.getPosition().getX()) * (xtemp -
+            // temp.getPosition().getX())));
+            // Position tempPosition = new Position(xtemp, ytemp);
+            // temp.setPosition(tempPosition);
+            // List<GameObject> listObst = nearestObjectList(temp, code);
+            // boolean lolos = false;
+            // for (GameObject obst : listObst) {
+            // double d = c1c2(temp, obst);
+            // if (isIntersect(temp, obst, d)) {
+            // // hitung sudut antara nanti dpt sudut teta -- bentar ya sumpeh skt kepala
+            // aing
+            // int teta = 90; // temp
+            // playerAction.heading += teta;
+            // // hitung jarak juga
+            // xtemp = (int) (Math.round((Math.cos(Math.toRadians(playerAction.heading))) *
+            // temp.getSpeed()))
+            // + bot.getPosition().getX();
+            // ytemp = (int) Math.round(Math.sqrt(temp.getSpeed() * temp.getSpeed()
+            // - (xtemp - bot.getPosition().getX()) * (xtemp - bot.getPosition().getX())));
+            // tempPosition.setX(xtemp);
+            // tempPosition.setY(ytemp);
+            // temp.setPosition(tempPosition);
+
+            // }
+
+            // }
+            playerAction.action = PlayerActions.START_AFTERBURNER;
+
+        } else {
+            playerAction.action = PlayerActions.FORWARD;
+        }
+    }
+
+    // private void runLargeEnemies(GameObject enemy, PlayerAction playerAction) {
+
+    // }
+
+}
+
 
 
     
