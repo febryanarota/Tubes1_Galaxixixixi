@@ -10,7 +10,11 @@ public class BotService {
     private GameObject bot;
     private PlayerAction playerAction;
     private GameState gameState;
-    private Integer SalvoCount;
+    // private Integer Salvos;
+    private GameObject Target;
+    // private GameObject prev_target;
+    // private Boolean isTagretPlayer;
+    // private Boolean nearZone;
 
     public BotService() {
         this.playerAction = new PlayerAction();
@@ -35,74 +39,83 @@ public class BotService {
 
     public void computeNextPlayerAction(PlayerAction playerAction) {
         playerAction.action = PlayerActions.FORWARD;
-        GameObject Target = null;
+        nearZone = false;
+        Target = null;
+        
         if (!gameState.getGameObjects().isEmpty()) {
             
-            List <GameObject> superFoodList = nearestObjectList(7);
-            List <GameObject> foodList = nearestObjectList(2);
-            List <GameObject> enemyList = nearestEnemyFromObject(bot);
+            // if (gameState.world.currentTick == 10) {
+            //     Salvos = 1;
+            // } else if (gameState.world.currentTick > 10 && gameState.world.currentTick % 10 == 0 && Salvos < 10) {
+            //     Salvos += 1;
+            // } else {
 
-            for (int i = 0; i < superFoodList.size(); i++) { 
-                GameObject candidate = superFoodList.get(i);
-                GameObject nearestEnemyFromTarget = nearestEnemyFromObject(candidate).get(0);
-                double enemyToTargetDistance = getDistanceBetween(candidate, nearestEnemyFromTarget);
-    
-                if (enemyToTargetDistance > getDistanceBetween(candidate)) { 
-                    Target = candidate;
-                    playerAction.heading = getHeadingBetween(Target);
-                    break;
-                } else {
-                    if (nearestEnemyFromTarget.size < bot.size) {
-                        Target = candidate;
+                List <GameObject> superFoodList = nearestObjectList(7);
+                List <GameObject> foodList = nearestObjectList(2);
+                List <GameObject> enemyList = nearestEnemyFromObject(bot);
+
+                // Target = superFoodList.get(0);
+                // playerAction.heading = getHeadingBetween(Target);
+
+
+                for (int i = 0; i < superFoodList.size(); i++) {
+                    if (getDistanceBetween(gameState.world.getCenterPoint(), superFoodList.get(i)) >= 180) {
+                        Target = superFoodList.get(i);
                         playerAction.heading = getHeadingBetween(Target);
                         break;
                     }
                 }
-            }
 
-            /*CASE JIKA SUPERFOOD TIDAK ADA YANG MEMUNGKINKAN (MASIH ERROR) */
-            // if (Target == null) {
-            //     for (int i = 0; i < foodList.size(); i++) { 
-            //         GameObject candidate = foodList.get(i);
-            //         GameObject nearestEnemyFromTarget = nearestEnemyFromObject(candidate).get(0);
-            //         double enemyToTargetDistance = getDistanceBetween(candidate, nearestEnemyFromTarget);
-        
-            //         if (enemyToTargetDistance > getDistanceBetween(candidate)) { 
-            //             Target = candidate;
-            //             playerAction.heading = getHeadingBetween(Target);
-            //             break;
-            //         } else {
-            //             if (nearestEnemyFromTarget.size < bot.size) {
-            //                 Target = candidate;
-            //                 playerAction.heading = getHeadingBetween(Target);
-            //                 break;
-            //             }
-            //         }
-            //     }
+                if (Target == null) {
+                    for (int i = 0; i < foodList.size(); i++) {
+                        if (getDistanceBetween(gameState.world.getCenterPoint(), foodList.get(i)) >= 180) {
+                            Target = foodList.get(i);
+                            playerAction.heading = getHeadingBetween(Target);
+                            break;
+                        }
+                    }
+                } else if (getDistanceBetween(foodList.get(0)) < getDistanceBetween(Target)) {
+                    int normalFoodHeading = getHeadingBetween(foodList.get(0));
+                    if (Math.abs(normalFoodHeading - playerAction.heading) <= 10) {
+                        Target = foodList.get(0);
+                        playerAction.heading = getHeadingBetween(Target);
+                    }
+                }
+
+                
+                // GameObject nearestEnemy = enemyList.get(0);
+
+                // if (bot.size < nearestEnemy.size) {
+                //     if (getDistanceBetween(nearestEnemy) - nearestEnemy.size <= 360) {
+                //         if (Salvos > 0 && bot.size >= 100) {
+                //             Target = nearestEnemy;
+                //             playerAction.heading = getHeadingBetween(Target);
+                //             playerAction.action = PlayerActions.FIRETORPEDOES;
+                //             Salvos -= 1;
+                //         } else {
+                //             Target = nearestEnemy;
+                //             playerAction.heading = (getHeadingBetween(Target) + 180) % 360;
+                //             playerAction.action = PlayerActions.FORWARD;
+                //         }
+                //     }
+                // } 
+                if (bot.size > nearestEnemy.size) {
+                    if (getDistanceBetween(nearestEnemy) - nearestEnemy.size <= 3*bot.size) {
+                        Target = nearestEnemy;
+                        playerAction.heading = getHeadingBetween(Target);
+                    }
+                }
+
+                
+                double distanceFromWorldCenter = getDistanceBetween(gameState.world.getCenterPoint(), bot);
+                if (distanceFromWorldCenter + 1.5 * bot.size >  gameState.world.getRadius()) {
+                    playerAction.heading = getHeadingBetween(gameState.world.getCenterPoint());
+                    playerAction.action = PlayerActions.FORWARD;
+                }
             // }
-            
-            //MEMASTIKAN BOT TIDAK KELUAR ARENA
-            //still error in some cases (gtau kenapa ya?????)
-            double distanceFromWorldCenter = getDistanceWorld();
-            if (distanceFromWorldCenter + (1.5 * bot.size) >  gameState.world.getRadius()) {
-                playerAction.heading = getHeadingBetween(gameState.world.getCenterPoint());      
-            }
-
-            // if (getDistanceBetween(Target) > getDistanceBetween(enemyList.get(0))) {
-            //     Target = enemyList.get(0);
-            //     if (bot.size < Target.size) {
-            //         if (bot.size >= 20 && bot.TorpedoSalvoCount > 0) {
-            //             playerAction.action = PlayerActions.FIRETORPEDOES;
-            //         } else {
-            //             playerAction.action = PlayerActions.FORWARD ;
-            //             playerAction.heading = (getHeadingBetween(Target) + 180) % 360;
-            //         }
-            //     }
-            // }
-
-
-        this.playerAction = playerAction;
         }
+
+        this.playerAction = playerAction;        
     }
     
     public GameState getGameState() {
@@ -119,19 +132,25 @@ public class BotService {
         optionalBot.ifPresent(bot -> this.bot = bot);
     }
 
+    // private void updateSalvo() {
+    //     if (SalvoCount <= 10 && gameState.world.currentTick % 10 == 0) {
+    //         SalvoCount++;
+    //     } 
+    // }
+
     private double getDistanceBetween(GameObject object1, GameObject object2) {
         var triangleX = Math.abs(object1.getPosition().x - object2.getPosition().x);
         var triangleY = Math.abs(object1.getPosition().y - object2.getPosition().y);
-        return Math.sqrt(triangleX * triangleX + triangleY * triangleY) - object1.size - object2.size + 1;
+        return Math.sqrt(triangleX * triangleX + triangleY * triangleY);
     }
 
     private double getDistanceBetween(GameObject object) {
         return getDistanceBetween(bot, object);
     }
 
-    private double getDistanceWorld() {
-        var triangleX = Math.abs(bot.getPosition().x - gameState.world.getCenterPoint().getX());
-        var triangleY = Math.abs(bot.getPosition().y - gameState.world.getCenterPoint().getY());
+    private double getDistanceBetween(Position object1, GameObject object2) {
+        var triangleX = Math.abs(object2.getPosition().x - object1.getX());
+        var triangleY = Math.abs(object2.getPosition().y - object1.getY());
         return Math.sqrt(triangleX * triangleX + triangleY * triangleY);
     }
 
@@ -270,6 +289,3 @@ public class BotService {
 
 
 
-
-
-}
