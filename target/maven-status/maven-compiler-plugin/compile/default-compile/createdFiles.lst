@@ -1,6 +1,7 @@
 Main.class
 Enums\PlayerActions.class
 Models\GameState.class
+Models\Effects.class
 Services\BotService.class
 Enums\ObjectTypes.class
 Models\GameStateDto.class
