@@ -18,8 +18,8 @@ public class GameObject {
 
   public GameObject(UUID id, Integer size, Integer speed, Integer currentHeading, Position position,
       ObjectTypes gameObjectType
-      // ,Integer TorpedoSalvoCount
-      ) {
+  // ,Integer TorpedoSalvoCount
+  ) {
     this.id = id;
     this.size = size;
     this.speed = speed;
@@ -105,7 +105,7 @@ public class GameObject {
     Position position = new Position(stateList.get(4), stateList.get(5));
     return new GameObject(id, stateList.get(0), stateList.get(1), stateList.get(2), position,
         ObjectTypes.valueOf(stateList.get(3))
-        // , stateList.get(7)
-        );
+    // , stateList.get(7)
+    );
   }
 }
