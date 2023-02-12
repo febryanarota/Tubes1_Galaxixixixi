@@ -10,7 +10,7 @@ public class BotService {
     private GameObject bot;
     private PlayerAction playerAction;
     private GameState gameState;
-    private Integer SalvoCount;
+    private int salvoCount;
 
     public BotService() {
         this.playerAction = new PlayerAction();
@@ -88,19 +88,40 @@ public class BotService {
                 playerAction.heading = getHeadingBetween(gameState.world.getCenterPoint());      
             }
 
-            // if (getDistanceBetween(Target) > getDistanceBetween(enemyList.get(0))) {
-            //     Target = enemyList.get(0);
-            //     if (bot.size < Target.size) {
-            //         if (bot.size >= 20 && bot.TorpedoSalvoCount > 0) {
-            //             playerAction.action = PlayerActions.FIRETORPEDOES;
-            //         } else {
-            //             playerAction.action = PlayerActions.FORWARD ;
-            //             playerAction.heading = (getHeadingBetween(Target) + 180) % 360;
-            //         }
-            //     }
-            // }
+             /*
+              * if (getDistanceBetween(Target) > getDistanceBetween(enemyList.get(0))) {
+                 Target = enemyList.get(0);
+                 if (bot.size < Target.size) {
+                     if (bot.size >= 20 && bot.TorpedoSalvoCount > 0) {
+                         playerAction.action = PlayerActions.FIRETORPEDOES;
+                    } else {
+                         playerAction.action = PlayerActions.FORWARD ;
+                         playerAction.heading = (getHeadingBetween(Target) + 180) % 360;
+                     }
+                 }
+             }
+              */
 
-
+             //speed = 60, 
+             /*Detect ada kapal lawan di sekitar jarak +- 40
+              * Case1: Jarak kurang dari 40 -> langsung tembak
+                check size kapal lawan(?) kayaknya gaperlu tembak aja kalo kena dapet poin ini
+                pastiin jarak/speed nya kurang dari <= 5, biar bisa kena akurasiya sebelum kapal lawan
+                teleport/afterburner
+              Case2: Jarak lebih jauh -> deketin dulu sampe 40 baru tembak
+              */
+            
+             int salvoCount = bot.TorpedoSalvoCount;
+             if(getDistanceBetween(bot, enemyList.get(0)) <= 40){
+                if(bot.size >= 20 && salvoCount > 3){
+                    playerAction.heading = getHeadingBetween((enemyList.get(0)));
+                    playerAction.action = PlayerActions.FIRETORPEDOES;
+                    
+                }
+                
+             } else {
+                playerAction.action = PlayerActions.FORWARD;
+             }
         this.playerAction = playerAction;
         }
     }
@@ -166,6 +187,7 @@ public class BotService {
             .collect(Collectors.toList());
         return object;
     }
+
 
 
 
