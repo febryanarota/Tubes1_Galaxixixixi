@@ -117,7 +117,7 @@ public class BotService {
 
         this.playerAction = playerAction;        
     }
-    
+
     public GameState getGameState() {
         return this.gameState;
     }
@@ -128,7 +128,8 @@ public class BotService {
     }
 
     private void updateSelfState() {
-        Optional<GameObject> optionalBot = gameState.getPlayerGameObjects().stream().filter(gameObject -> gameObject.id.equals(bot.id)).findAny();
+        Optional<GameObject> optionalBot = gameState.getPlayerGameObjects().stream()
+                .filter(gameObject -> gameObject.id.equals(bot.id)).findAny();
         optionalBot.ifPresent(bot -> this.bot = bot);
     }
 
@@ -170,19 +171,19 @@ public class BotService {
         return (int) (v * (180 / Math.PI));
     }
 
-    private List <GameObject> nearestEnemyFromObject(GameObject x) {    
-        List <GameObject> object = gameState.getPlayerGameObjects().stream()
-            .filter(item-> item.id != x.id)
-            .sorted(Comparator.comparing(item -> getDistanceBetween(x, item)))
-            .collect(Collectors.toList());
+    private List<GameObject> nearestEnemyFromObject(GameObject x) {
+        List<GameObject> object = gameState.getPlayerGameObjects().stream()
+                .filter(item -> item.id != x.id)
+                .sorted(Comparator.comparing(item -> getDistanceBetween(x, item)))
+                .collect(Collectors.toList());
         return object;
     }
 
-    private List<GameObject> nearestObjectList (int n) {
-        List <GameObject> object = gameState.getGameObjects().stream()
-            .filter(item-> item.gameObjectType.value == n)
-            .sorted(Comparator.comparing(item -> getDistanceBetween(bot, item)))
-            .collect(Collectors.toList());
+    private List<GameObject> nearestObjectList(int n) {
+        List<GameObject> object = gameState.getGameObjects().stream()
+                .filter(item -> item.gameObjectType.value == n)
+                .sorted(Comparator.comparing(item -> getDistanceBetween(bot, item)))
+                .collect(Collectors.toList());
         return object;
     }
 
