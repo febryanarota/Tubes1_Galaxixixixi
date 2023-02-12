@@ -10,11 +10,7 @@ public class BotService {
     private GameObject bot;
     private PlayerAction playerAction;
     private GameState gameState;
-    // private Integer Salvos;
     private GameObject Target;
-    // private GameObject prev_target;
-    // private Boolean isTagretPlayer;
-    // private Boolean nearZone;
 
     public BotService() {
         this.playerAction = new PlayerAction();
@@ -39,34 +35,22 @@ public class BotService {
 
     public void computeNextPlayerAction(PlayerAction playerAction) {
         playerAction.action = PlayerActions.FORWARD;
-        nearZone = false;
         Target = null;
         
         if (!gameState.getGameObjects().isEmpty()) {
-            
-            // if (gameState.world.currentTick == 10) {
-            //     Salvos = 1;
-            // } else if (gameState.world.currentTick > 10 && gameState.world.currentTick % 10 == 0 && Salvos < 10) {
-            //     Salvos += 1;
-            // } else {
-
                 List <GameObject> superFoodList = nearestObjectList(7);
                 List <GameObject> foodList = nearestObjectList(2);
                 List <GameObject> enemyList = nearestEnemyFromObject(bot);
 
-                // Target = superFoodList.get(0);
-                // playerAction.heading = getHeadingBetween(Target);
-
-
                 for (int i = 0; i < superFoodList.size(); i++) {
-                    if (getDistanceBetween(gameState.world.getCenterPoint(), superFoodList.get(i)) >= 180) {
+                    if (getDistanceBetween(gameState.world.getCenterPoint(), superFoodList.get(i)) >= 180) { //Pastiin foodnya gak terlalu deket sama pinggir arena
                         Target = superFoodList.get(i);
                         playerAction.heading = getHeadingBetween(Target);
                         break;
                     }
                 }
 
-                if (Target == null) {
+                if (superFoodList.size() == 0) { //Kalau gak ada superfood, cari food biasa
                     for (int i = 0; i < foodList.size(); i++) {
                         if (getDistanceBetween(gameState.world.getCenterPoint(), foodList.get(i)) >= 180) {
                             Target = foodList.get(i);
@@ -74,7 +58,9 @@ public class BotService {
                             break;
                         }
                     }
-                } else if (getDistanceBetween(foodList.get(0)) < getDistanceBetween(Target)) {
+
+                //Kalau ada superfood, cek apakah ada food biasa yang searah
+                } else if (getDistanceBetween(foodList.get(0)) < getDistanceBetween(Target)) { 
                     int normalFoodHeading = getHeadingBetween(foodList.get(0));
                     if (Math.abs(normalFoodHeading - playerAction.heading) <= 10) {
                         Target = foodList.get(0);
@@ -82,37 +68,37 @@ public class BotService {
                     }
                 }
 
+                if (bot.size > 100 && bot.TorpedoSalvoCount > 0) { //Bot udah besar, tembak musuh paling dekat
+                    playerAction.action = PlayerActions.FIRETORPEDOES;
+                    playerAction.heading = getHeadingBetween(enemyList.get(0));
+                }
                 
-                // GameObject nearestEnemy = enemyList.get(0);
+                GameObject enemy = enemyList.get(0);
 
-                // if (bot.size < nearestEnemy.size) {
-                //     if (getDistanceBetween(nearestEnemy) - nearestEnemy.size <= 360) {
-                //         if (Salvos > 0 && bot.size >= 100) {
-                //             Target = nearestEnemy;
-                //             playerAction.heading = getHeadingBetween(Target);
-                //             playerAction.action = PlayerActions.FIRETORPEDOES;
-                //             Salvos -= 1;
-                //         } else {
-                //             Target = nearestEnemy;
-                //             playerAction.heading = (getHeadingBetween(Target) + 180) % 360;
-                //             playerAction.action = PlayerActions.FORWARD;
-                //         }
-                //     }
-                // } 
-                if (bot.size > nearestEnemy.size) {
-                    if (getDistanceBetween(nearestEnemy) - nearestEnemy.size <= 3*bot.size) {
-                        Target = nearestEnemy;
-                        playerAction.heading = getHeadingBetween(Target);
+                if (bot.size >= 20 && getDistanceBetween(enemy) - bot.size - enemy.size <= 500) { //Bot kecil tapi ada musuh mendekat (range jarak "dekat" blm fix)
+                    if (bot.TorpedoSalvoCount > 0) {                        //tembak kalo ada salvo
+                        playerAction.action = PlayerActions.FIRETORPEDOES;
+                        playerAction.heading = getHeadingBetween(enemy);
+                    } else {                                                //Putar balik kalo gaada salvo
+                        playerAction.action = PlayerActions.FORWARD;
+                        playerAction.heading = (getHeadingBetween(enemy) + 180) % 360;
                     }
                 }
 
-                
+                if (bot.size > enemy.size && getDistanceBetween(enemy) - bot.size - enemy.size <= 200) { //Bot besar, ada musuh mendekat
+                    playerAction.action = PlayerActions.FORWARD;
+                    playerAction.heading = getHeadingBetween(enemy);
+                    //if () {
+                    // mau implementasiin afterburner buat ngejar (masih rencana)
+                    //}
+                }
+
+                //Memastikan bot tidak keluar arena
                 double distanceFromWorldCenter = getDistanceBetween(gameState.world.getCenterPoint(), bot);
-                if (distanceFromWorldCenter + 1.5 * bot.size >  gameState.world.getRadius()) {
+                if (distanceFromWorldCenter + 1.5 * bot.size >  gameState.world.getRadius()) { //masih bingung nentuin batas amannya
                     playerAction.heading = getHeadingBetween(gameState.world.getCenterPoint());
                     playerAction.action = PlayerActions.FORWARD;
                 }
-            // }
         }
 
         this.playerAction = playerAction;        
