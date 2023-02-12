@@ -17,7 +17,8 @@ public class GameObject {
   public Integer Effects;
 
   public GameObject(UUID id, Integer size, Integer speed, Integer currentHeading, Position position,
-      ObjectTypes gameObjectType
+      ObjectTypes gameObjectType, Integer TorpedoSalvoCount, Integer SupernovaAvailable, Integer TeleportCount,
+      Integer ShieldCount, Integer Effects
   // ,Integer TorpedoSalvoCount
   ) {
     this.id = id;
@@ -26,7 +27,11 @@ public class GameObject {
     this.currentHeading = currentHeading;
     this.position = position;
     this.gameObjectType = gameObjectType;
-    // this.TorpedoSalvoCount = TorpedoSalvoCount;
+    this.TorpedoSalvoCount = TorpedoSalvoCount;
+    this.SupernovaAvailable = SupernovaAvailable;
+    this.TeleportCount = TeleportCount;
+    this.ShieldCount = ShieldCount;
+    this.Effects = Effects;
   }
 
   public UUID getId() {
@@ -103,9 +108,17 @@ public class GameObject {
 
   public static GameObject FromStateList(UUID id, List<Integer> stateList) {
     Position position = new Position(stateList.get(4), stateList.get(5));
-    return new GameObject(id, stateList.get(0), stateList.get(1), stateList.get(2), position,
-        ObjectTypes.valueOf(stateList.get(3))
+    if (stateList.get(3) != 1) {
+      return new GameObject(id, stateList.get(0), stateList.get(1), stateList.get(2), position,
+          ObjectTypes.valueOf(stateList.get(3)), 0, 0, 0, 0, 0);
+    } else {
+      return new GameObject(id, stateList.get(0), stateList.get(1), stateList.get(2), position,
+          ObjectTypes.valueOf(stateList.get(3)), stateList.get(7), stateList.get(8), stateList.get(9),
+          stateList.get(10),
+          stateList.get(6));
+    }
+
     // , stateList.get(7)
-    );
   }
+
 }
