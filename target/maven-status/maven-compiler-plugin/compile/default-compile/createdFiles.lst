@@ -5,7 +5,6 @@ Models\Effects.class
 Services\BotService.class
 Enums\ObjectTypes.class
 Models\GameStateDto.class
-Models\test.class
 Models\PlayerAction.class
 Models\GameObject.class
 Models\Position.class
