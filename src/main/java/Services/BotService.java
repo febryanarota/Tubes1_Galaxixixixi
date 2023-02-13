@@ -62,7 +62,7 @@ public class BotService {
             // } else if (bot.getSize() > 20 && !listTorpedo.isEmpty() &&
             // getDistanceBetween(bot, listTorpedo.get(0)) <= 60) {
             // playerAction.action = PlayerActions.ACTIVATE_SHIELD;
-            // } else {
+        } else {
             if (!gameState.getGameObjects().isEmpty()) {
 
                 for (int i = 0; i < superFoodList.size(); i++) {
