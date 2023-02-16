@@ -78,6 +78,10 @@ public class BotService {
                         playerAction.action = PlayerActions.FORWARD;
                         playerAction.heading = (getHeadingBetween(enemy) + 180) % 360;
                         // to do: handle kalo ada gas cloud
+                        if(isThereGas()){
+                            playerAction.action = PlayerActions.FORWARD;
+                            playerAction.heading = (playerAction.heading + 120) % 360;
+                        }
 
                     } else { // Putar balik kalo gaada salvo
                         playerAction.action = PlayerActions.FORWARD;
@@ -89,6 +93,10 @@ public class BotService {
                     playerAction.action = PlayerActions.FORWARD;
                     playerAction.heading = getHeadingBetween(enemy);
                     // to do: konsiderasi kalo ada gas cloud sekitar
+                    if(isThereGas()){
+                        playerAction.action = PlayerActions.FORWARD;
+                        playerAction.heading = (playerAction.heading + 120) % 360;
+                    }
 
                 }
                 if (bot.size > 200 && bot.TorpedoSalvoCount > 0) { // Bot udah besar, tembak musuh paling dekat
@@ -97,6 +105,12 @@ public class BotService {
                     // to do: handle kalo udah late game
                 }
 
+                if (bot.size > 1.5 * enemy.size && getDistanceBetween(enemy) <= 50) { // Bot besar, ada musuh mendekat
+                    playerAction.action = PlayerActions.FORWARD;
+                    playerAction.heading = getHeadingBetween(enemy);
+                    //to do: konsiderasi kalo ada gas cloud sekitar
+                }
+                
                 // dodge();
 
                 // Memastikan bot tidak keluar arena
@@ -172,6 +186,9 @@ public class BotService {
                 playerAction.heading = getHeadingBetween(Target);
             }
         }
+        if (Target == null){
+            
+        }
     }
 
     // private boolean isThereGas() {
@@ -206,13 +223,26 @@ public class BotService {
         }
     }
 
-    private void dodge() {
-        List<GameObject> gasCloud = nearestObjectList(4);
-        List<GameObject> asteroids = nearestObjectList(5);
-        List<GameObject> obstacles = Stream.concat(gasCloud.stream(), asteroids.stream()).toList();
+    private boolean isThereGas () {
+        List <GameObject> gasCloud = nearestObjectList(4);
+        List <GameObject> asteroids = nearestObjectList(5);
+        List <GameObject> obstacles = Stream.concat(gasCloud.stream(), asteroids.stream()).toList();
 
         for (GameObject obs : obstacles) {
-            if (isBlocking(obs) && getDistanceBetween(obs) - bot.size - obs.size <= 200) {
+            if (getHeadingBetween(obs)- bot.currentHeading <= 45 && getDistanceBetween(obs) <= 100 + 5 * bot.speed) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void dodge() {
+        List <GameObject> gasCloud = nearestObjectList(4);
+        List <GameObject> asteroids = nearestObjectList(5);
+        List <GameObject> obstacles = Stream.concat(gasCloud.stream(), asteroids.stream()).toList();
+
+        for (GameObject obs : obstacles) {
+            if (isBlocking(obs) && getDistanceBetween(obs) - bot.size - obs.size <= 200 ) {
                 playerAction.heading = (playerAction.heading + 180) % 360;
             }
         }
