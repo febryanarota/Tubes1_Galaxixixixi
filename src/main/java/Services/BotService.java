@@ -36,7 +36,6 @@ public class BotService {
     public void computeNextPlayerAction(PlayerAction playerAction) {
         playerAction.action = PlayerActions.FORWARD;
         GameObject Target = null;
-
         // cek apakah dlm pengaruh gas cloud
         List<GameObject> gases = nearestObjectList(4);
         List<GameObject> asteroid = nearestObjectList(5);
@@ -44,11 +43,7 @@ public class BotService {
         List<GameObject> foodList = nearestObjectList(2);
         List<GameObject> enemyList = nearestEnemyFromObject(bot);
         List<GameObject> listTorpedo = nearestObjectList(6);
-        // for(GameObject enemy : enemyList){
-        // if(){
 
-        // }
-        // }
         if (bot.underEffect(4)) {
             for (GameObject gas : gases) {
                 double d = c1c2(bot, gas);
@@ -59,9 +54,14 @@ public class BotService {
             }
 
             // SHIELD MSH PROTO
-            // } else if (bot.getSize() > 20 && !listTorpedo.isEmpty() &&
-            // getDistanceBetween(bot, listTorpedo.get(0)) <= 60) {
-            // playerAction.action = PlayerActions.ACTIVATE_SHIELD;
+        } else if (bot.getSize() > 20 && !listTorpedo.isEmpty() &&
+                getDistanceBetween(bot, listTorpedo.get(0)) <= 60
+                && listTorpedo.get(0).currentHeading >= ((getHeadingBetween(
+                        listTorpedo.get(0), bot)) - calculateHeadingRange(listTorpedo.get(0), bot))
+                && listTorpedo.get(0).currentHeading <= ((getHeadingBetween(
+                        listTorpedo.get(0), bot)) + calculateHeadingRange(listTorpedo.get(0), bot))) {
+            playerAction.action = PlayerActions.ACTIVATESHIELD;
+
         } else {
             if (!gameState.getGameObjects().isEmpty()) {
                 List<GameObject> gasCloud = nearestObjectList(4);
@@ -237,6 +237,12 @@ public class BotService {
     private int getHeadingBetween(GameObject otherObject) {
         var direction = toDegrees(Math.atan2(otherObject.getPosition().y - bot.getPosition().y,
                 otherObject.getPosition().x - bot.getPosition().x));
+        return (direction + 360) % 360;
+    }
+
+    private int getHeadingBetween(GameObject o1, GameObject o2) {
+        var direction = toDegrees(Math.atan2(o2.getPosition().y - o1.getPosition().y,
+                o2.getPosition().x - o1.getPosition().x));
         return (direction + 360) % 360;
     }
 
