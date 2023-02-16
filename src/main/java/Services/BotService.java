@@ -10,7 +10,7 @@ public class BotService {
     private GameObject bot;
     private PlayerAction playerAction;
     private GameState gameState;
-    private int salvoCount;
+    private GameObject Target;
 
     public BotService() {
         this.playerAction = new PlayerAction();
@@ -35,112 +35,76 @@ public class BotService {
 
     public void computeNextPlayerAction(PlayerAction playerAction) {
         playerAction.action = PlayerActions.FORWARD;
-        GameObject Target = null;
+        // GameObject Target = null;
+        
+
+        // // cek apakah dlm pengaruh gas cloud
+        // // List<GameObject> gases = nearestObjectList(4);
+        // // List<GameObject> asteroid = nearestObjectList(5);
+        // // if (bot.underEffect(4)) {
+        // // for (GameObject gas : gases) {
+        // // double d = c1c2(bot, gas);
+        // // if (isIntersect(gas, bot, d)) {
+        // // escapeInGass(gas, playerAction, 4);
+        // // break;
+        // // }
+        // // }
+        // // }
         if (!gameState.getGameObjects().isEmpty()) {
-
-            List<GameObject> superFoodList = nearestObjectList(7);
-            List<GameObject> foodList = nearestObjectList(2);
             List<GameObject> enemyList = nearestEnemyFromObject(bot);
+            List<GameObject> gasCloud = nearestObjectList(4);
+            GameObject enemy = enemyList.get(0);
 
-            for (int i = 0; i < superFoodList.size(); i++) {
-                GameObject candidate = superFoodList.get(i);
-                GameObject nearestEnemyFromTarget = nearestEnemyFromObject(candidate).get(0);
-                double enemyToTargetDistance = getDistanceBetween(candidate, nearestEnemyFromTarget);
-
-                if (enemyToTargetDistance > getDistanceBetween(candidate)) {
-                    Target = candidate;
-                    playerAction.heading = getHeadingBetween(Target);
-                    break;
-                } else {
-                    if (nearestEnemyFromTarget.size < bot.size) {
-                        Target = candidate;
-                        playerAction.heading = getHeadingBetween(Target);
-                        break;
+            findFood(); 
+            
+            // Bot kecil tapi ada musuh mendekat (range jarak "dekat" blm fix)
+            if (bot.size >= 40 &&  getDistanceBetween(enemy) - bot.size - enemy.size <= 400) { 
+                if (bot.TorpedoSalvoCount > 0) { // tembak kalo ada salvo
+                    playerAction.action = PlayerActions.FIRETORPEDOES;
+                    playerAction.heading = getHeadingBetween(enemy);
+                } else if (enemy.size > bot.size && getDistanceBetween(enemy) <= 100) {
+                    playerAction.action = PlayerActions.FORWARD;
+                    playerAction.heading = (getHeadingBetween(enemy) + 180) % 360;
+                    // to do: handle kalo ada gas cloud
+                    if (isThereGas()) {
+                        playerAction.action = PlayerActions.FORWARD;
+                        playerAction.heading = (playerAction.heading + 120) % 360;
+                    }
+                
+                } else { // Putar balik kalo gaada salvo
+                    playerAction.action = PlayerActions.FORWARD;
+                    playerAction.heading = (getHeadingBetween(enemy) + 180) % 360;
+                    if (isThereGas()) {
+                        playerAction.action = PlayerActions.FORWARD;
+                        playerAction.heading = (playerAction.heading + 120) % 360;
                     }
                 }
             }
+            
+            if (bot.size > 200 && bot.TorpedoSalvoCount > 0) { // Bot udah besar, tembak musuh paling dekat
+                playerAction.action = PlayerActions.FIRETORPEDOES;
+                playerAction.heading = getHeadingBetween(enemyList.get(0));
+                //to do: handle kalo udah late game
+            }
+            
+            if (bot.size > 1.5 * enemy.size && getDistanceBetween(enemy) <= 50) { // Bot besar, ada musuh mendekat
+                playerAction.action = PlayerActions.FORWARD;
+                playerAction.heading = getHeadingBetween(enemy);
+                //to do: konsiderasi kalo ada gas cloud sekitar
+            }
+            // dodge();
 
-            /* CASE JIKA SUPERFOOD TIDAK ADA YANG MEMUNGKINKAN (MASIH ERROR) */
-            // if (Target == null) {
-            // for (int i = 0; i < foodList.size(); i++) {
-            // GameObject candidate = foodList.get(i);
-            // GameObject nearestEnemyFromTarget = nearestEnemyFromObject(candidate).get(0);
-            // double enemyToTargetDistance = getDistanceBetween(candidate,
-            // nearestEnemyFromTarget);
-
-            // if (enemyToTargetDistance > getDistanceBetween(candidate)) {
-            // Target = candidate;
-            // playerAction.heading = getHeadingBetween(Target);
-            // break;
-            // } else {
-            // if (nearestEnemyFromTarget.size < bot.size) {
-            // Target = candidate;
-            // playerAction.heading = getHeadingBetween(Target);
-            // break;
-            // }
-            // }
-            // }
-            // }
-
-            // MEMASTIKAN BOT TIDAK KELUAR ARENA
-            // still error in some cases (gtau kenapa ya?????)
-            double distanceFromWorldCenter = getDistanceWorld();
-            if (distanceFromWorldCenter + (1.5 * bot.size) > gameState.world.getRadius()) {
+            // Memastikan bot tidak keluar arena
+            double distanceFromWorldCenter = getDistanceBetween(gameState.world.getCenterPoint(), bot);
+            if (distanceFromWorldCenter + 1.5 * bot.size + bot.speed * 10> gameState.world.getRadius()) { // masih bingung nentuin batas amannya
                 playerAction.heading = getHeadingBetween(gameState.world.getCenterPoint());
+                playerAction.action = PlayerActions.FORWARD;
+                //to do: handle kalo udah late game, karena batas "aman"nya jdi jalan mulu, harusnya nyerang lawan
             }
 
-<<<<<<< HEAD
-             /*
-              * if (getDistanceBetween(Target) > getDistanceBetween(enemyList.get(0))) {
-                 Target = enemyList.get(0);
-                 if (bot.size < Target.size) {
-                     if (bot.size >= 20 && bot.TorpedoSalvoCount > 0) {
-                         playerAction.action = PlayerActions.FIRETORPEDOES;
-                    } else {
-                         playerAction.action = PlayerActions.FORWARD ;
-                         playerAction.heading = (getHeadingBetween(Target) + 180) % 360;
-                     }
-                 }
-             }
-              */
-
-             //speed = 60, 
-             /*Detect ada kapal lawan di sekitar jarak +- 40
-              * Case1: Jarak kurang dari 40 -> langsung tembak
-                check size kapal lawan(?) kayaknya gaperlu tembak aja kalo kena dapet poin ini
-                pastiin jarak/speed nya kurang dari <= 5, biar bisa kena akurasiya sebelum kapal lawan
-                teleport/afterburner
-              Case2: Jarak lebih jauh -> deketin dulu sampe 40 baru tembak
-              */
-            
-             int salvoCount = bot.TorpedoSalvoCount;
-             if(getDistanceBetween(bot, enemyList.get(0)) <= 40){
-                if(bot.size >= 20 && salvoCount > 3){
-                    playerAction.heading = getHeadingBetween((enemyList.get(0)));
-                    playerAction.action = PlayerActions.FIRETORPEDOES;
-                    
-                }
-                
-             } else {
-                playerAction.action = PlayerActions.FORWARD;
-             }
-        this.playerAction = playerAction;
-=======
-            // if (getDistanceBetween(Target) > getDistanceBetween(enemyList.get(0))) {
-            // Target = enemyList.get(0);
-            // if (bot.size < Target.size) {
-            // if (bot.size >= 20 && bot.TorpedoSalvoCount > 0) {
-            // playerAction.action = PlayerActions.FIRETORPEDOES;
-            // } else {
-            // playerAction.action = PlayerActions.FORWARD ;
-            // playerAction.heading = (getHeadingBetween(Target) + 180) % 360;
-            // }
-            // }
-            // }
-
-            this.playerAction = playerAction;
->>>>>>> a216ccbcb33d4ef261e2a0e6a216fd127ff84927
         }
+
+        this.playerAction = playerAction;
     }
 
     public GameState getGameState() {
@@ -158,6 +122,103 @@ public class BotService {
         optionalBot.ifPresent(bot -> this.bot = bot);
     }
 
+    private void findFood() {
+        List<GameObject> superFoodList = nearestObjectList(7);
+        List<GameObject> foodList = nearestObjectList(2);
+        GameObject candidate = null;
+
+        for (int i = 0; i < superFoodList.size(); i++) {
+            candidate = superFoodList.get(i);
+
+            //pastikan target tidak terlalu pinggir arena dan tidak ada gas yang menghalangi
+            if (getDistanceBetween(gameState.world.getCenterPoint(), candidate) >= 180 + bot.size && !isGasBlocking(candidate)) { 
+                Target = candidate;
+                playerAction.heading = getHeadingBetween(Target);
+                break;
+            }
+        }
+
+        if (superFoodList.size() == 0 || Target == null) { // tidak ada superfood, cari food biasa
+            for (int i = 0; i < foodList.size(); i++) {
+                candidate = foodList.get(i);
+                if (getDistanceBetween(gameState.world.getCenterPoint(), candidate) >= 180 + bot.size && !isGasBlocking(candidate)) {
+                    Target = candidate;
+                    playerAction.heading = getHeadingBetween(Target);
+                    break;
+                }
+            }
+
+            // Kalau ada superfood, cek apakah ada food biasa yang searah
+        } else if (getDistanceBetween(foodList.get(0)) < getDistanceBetween(Target)) {
+            candidate = foodList.get(0);
+            int normalFoodHeading = getHeadingBetween(foodList.get(0));
+            if (Math.abs(normalFoodHeading - playerAction.heading) <= 10 && !isGasBlocking(candidate)) {
+                Target = candidate;
+                playerAction.heading = getHeadingBetween(Target);
+            }
+        }
+
+        if (Target == null) { // udah gaada lagi makanan yang memungkinkan (late game)
+
+        }
+    }
+
+    // private boolean isThereGas() {
+
+    // }
+    
+    //memeriksa apakah ada gas cloud atau asteroids pada jalan menuju target
+    private boolean isGasBlocking(GameObject object) {
+        List <GameObject> gasCloud = nearestObjectList(4);
+        List <GameObject> asteroids = nearestObjectList(5);
+        List <GameObject> obstacles = Stream.concat(gasCloud.stream(), asteroids.stream()).toList();
+
+        if (getDistanceBetween(gasCloud.get(0), object) <= bot.size + 5 * bot.speed) {
+            return true;
+        }
+        for (GameObject obs : obstacles) {
+            if (isBlocking(obs) && getDistanceBetween(obs) <=  getDistanceBetween(object)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isBlocking(GameObject obj) {
+        int theta = Math.abs(getHeadingBetween(obj) - bot.currentHeading);
+        double a = getDistanceBetween(obj, bot);
+        double b = bot.size + obj.size;
+        if (a * Math.sin(theta) <= b) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean isThereGas () {
+        List <GameObject> gasCloud = nearestObjectList(4);
+        List <GameObject> asteroids = nearestObjectList(5);
+        List <GameObject> obstacles = Stream.concat(gasCloud.stream(), asteroids.stream()).toList();
+
+        for (GameObject obs : obstacles) {
+            if (getHeadingBetween(obs)- bot.currentHeading <= 45 && getDistanceBetween(obs) <= 100 + 5 * bot.speed) {
+                return true;
+            }
+        }
+        return false;
+    }
+    private void dodge() {
+        List <GameObject> gasCloud = nearestObjectList(4);
+        List <GameObject> asteroids = nearestObjectList(5);
+        List <GameObject> obstacles = Stream.concat(gasCloud.stream(), asteroids.stream()).toList();
+
+        for (GameObject obs : obstacles) {
+            if (isBlocking(obs) && getDistanceBetween(obs) - bot.size - obs.size <= 200 ) {
+                playerAction.heading = (playerAction.heading + 180) % 360;
+            }
+        }
+    }
+
     private double getDistanceBetween(GameObject object1, GameObject object2) {
         var triangleX = Math.abs(object1.getPosition().x - object2.getPosition().x);
         var triangleY = Math.abs(object1.getPosition().y - object2.getPosition().y);
@@ -168,9 +229,9 @@ public class BotService {
         return getDistanceBetween(bot, object);
     }
 
-    private double getDistanceWorld() {
-        var triangleX = Math.abs(bot.getPosition().x - gameState.world.getCenterPoint().getX());
-        var triangleY = Math.abs(bot.getPosition().y - gameState.world.getCenterPoint().getY());
+    private double getDistanceBetween(Position object1, GameObject object2) {
+        var triangleX = Math.abs(object2.getPosition().x - object1.getX());
+        var triangleY = Math.abs(object2.getPosition().y - object1.getY());
         return Math.sqrt(triangleX * triangleX + triangleY * triangleY);
     }
 
@@ -219,9 +280,6 @@ public class BotService {
     }
 
     private double c1c2(GameObject object1, GameObject object2) {
-        boolean intersect = false;
-        int r1 = object1.getSize();
-        int r2 = object2.getSize();
         int x1 = object1.getPosition().getX();
         int y1 = object1.getPosition().getY();
         int x2 = object2.getPosition().getX();
@@ -242,77 +300,112 @@ public class BotService {
         return (d <= (r2 - r1));
     }
 
+    private boolean isColliding(GameObject object1, GameObject object2, int speed1) {
+        int x1 = object1.getPosition().getX();
+        int y1 = object1.getPosition().getY();
+        int v1 = speed1;
+        int teta1 = object1.currentHeading;
+        int r1 = object1.getSize();
+
+        int x2 = object1.getPosition().getX();
+        int y2 = object1.getPosition().getY();
+        int v2 = object1.getSpeed();
+        int teta2 = object1.currentHeading;
+        int r2 = object1.getSize();
+
+        double a = (v1 * Math.cos(Math.toRadians(teta1)) - v2 * Math.cos(Math.toRadians(teta2)))
+                * (v1 * Math.cos(Math.toRadians(teta1)) - v2 * Math.cos(Math.toRadians(teta2)))
+                + (v1 * Math.sin(Math.toRadians(teta1)) - v2 * Math.sin(Math.toRadians(teta2)))
+                        * (v1 * Math.sin(Math.toRadians(teta1)) - v2 * Math.sin(Math.toRadians(teta2)));
+        double b = 2 * ((x1 - x2) * (v1 * Math.cos(Math.toRadians(teta1)) - v2 * Math.cos(Math.toRadians(teta2)))
+                + (y1 - y2) * (v1 * Math.sin(Math.toRadians(teta1)) - v2 * Math.sin(Math.toRadians(teta2))));
+        double c = (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) - (r1 + r2) * (r1 + r2);
+
+        double determinan = b * b - 4 * a * c;
+        if (determinan < 0 && a < 0) {
+            return true;
+        } else if (determinan < 0 && a > 0) {
+            return false;
+        } else {
+            double akar1 = ((-1) * b + Math.sqrt(determinan)) / (2 * a);
+            double akar2 = ((-1) * b - Math.sqrt(determinan)) / (2 * a);
+            double temp;
+            if (akar1 > akar2) {
+                temp = akar1;
+                akar1 = akar2;
+                akar2 = temp;
+            }
+            boolean area1 = ((a * ((akar1 - 1) * (akar1 - 1)) + b * (akar1 - 1) + c) < 0); // area : t < akar 1
+            boolean area2 = ((a * ((1 / 2 * akar1 + 1 / 2 * akar2) * (1 / 2 * akar1 + 1 / 2 * akar2))
+                    + b * (1 / 2 * akar1 + 1 / 2 * akar2) + c) < 0); // area : akar1 < t < akar2
+            boolean area3 = ((a * ((akar2 + 1) * (akar2 + 1)) + b * (akar2 + 1) + c) < 0);
+            if (akar1 >= 1) {
+                return area1;
+            } else if (akar1 <= 0 && akar2 >= 1) {
+                return area2;
+            } else if (akar2 <= 0) {
+                return area3;
+            } else {
+                return true;
+            }
+
+        }
+    }
+
     private void escapeInGass(GameObject gasAsteroid, PlayerAction playerAction, int code) {
         // hitung jarak terdekat bot keluar dari gasscloud (lingkaran)
 
         var triangleX = Math.abs(gasAsteroid.getPosition().x - bot.getPosition().x);
         var triangleY = Math.abs(gasAsteroid.getPosition().y - gasAsteroid.getPosition().y);
         var o1o2 = Math.sqrt(triangleX * triangleX + triangleY * triangleY);
-
+        double backDegree = 180 + bot.currentHeading;
         double jarakTerdekat = gasAsteroid.getSize() - o1o2 + bot.getSize();
-        playerAction.heading = 180 - (toDegrees(Math.atan2(gasAsteroid.getPosition().y - bot.getPosition().y,
+        double closestExitDeg = 180 + (toDegrees(Math.atan2(gasAsteroid.getPosition().y - bot.getPosition().y,
                 gasAsteroid.getPosition().x - bot.getPosition().x) + 360) % 360);
         GameObject temp = bot;
-
+        List<GameObject> enemyList = nearestEnemyFromObject(temp);
+        List<GameObject> gases = nearestObjectList(4);
+        List<GameObject> asteroid = nearestObjectList(5);
+        // List<GameObject> asteroid = nearestObjectList(5);
         if (jarakTerdekat > bot.speed) {
-            // ini klo mempertimbangkan klo dia jln kena gass yg lain ga
-            // int xtemp = (int)
-            // (Math.round((Math.cos(Math.toRadians(playerAction.heading))) *
-            // temp.getSpeed()))
-            // + temp.getPosition().getX();
-            // int ytemp = (int) Math.round(Math.sqrt(temp.getSpeed() * temp.getSpeed()
-            // - (xtemp - temp.getPosition().getX()) * (xtemp -
-            // temp.getPosition().getX())));
-            // Position tempPosition = new Position(xtemp, ytemp);
-            // temp.setPosition(tempPosition);
-            // List<GameObject> listObst = nearestObjectList(temp, code);
-            // boolean lolos = false;
-            // for (GameObject obst : listObst) {
-            // double d = c1c2(temp, obst);
-            // if (isIntersect(temp, obst, d)) {
-            // // hitung sudut antara nanti dpt sudut teta -- bentar ya sumpeh skt kepala
-            // aing
-            // int teta = 90; // temp
-            // playerAction.heading += teta;
-            // // hitung jarak juga
-            // xtemp = (int) (Math.round((Math.cos(Math.toRadians(playerAction.heading))) *
-            // temp.getSpeed()))
-            // + bot.getPosition().getX();
-            // ytemp = (int) Math.round(Math.sqrt(temp.getSpeed() * temp.getSpeed()
-            // - (xtemp - bot.getPosition().getX()) * (xtemp - bot.getPosition().getX())));
-            // tempPosition.setX(xtemp);
-            // tempPosition.setY(ytemp);
-            // temp.setPosition(tempPosition);
+            int xtemp = (int) Math.cos(Math.toRadians(closestExitDeg)) * 2 * temp.getSpeed();
+            int ytemp = (int) Math.sin(closestExitDeg) * 2 * temp.getSpeed();
+            Position xytemp = new Position(xtemp, ytemp);
+            temp.setPosition(xytemp);
+            for (GameObject enemy : enemyList) {
+                // ini anggap gaada perubahan ukuran pas jalan
+                if (isColliding(temp, enemy, 2 * temp.getSpeed()) && enemy.getSize() > temp.getSize()) {
+                    playerAction.heading = (int) backDegree;
+                    break;
+                }
+            }
+            for (GameObject gas : gases) {
+                if (gasAsteroid.getId() != gas.getId()) {
+                    if (isColliding(temp, gas, 2 * temp.getSpeed())) {
+                        playerAction.heading = (int) backDegree;
+                        break;
+                    }
+                }
 
-            // }
+            }
+            for (GameObject ast : asteroid) {
+                if (isColliding(temp, ast, 2 * temp.getSpeed())) {
+                    playerAction.heading = (int) backDegree;
+                    break;
+                }
 
-            // }
+            }
+
             playerAction.action = PlayerActions.START_AFTERBURNER;
 
         } else {
+
+            // kurleb sama kayak yg di atas -- ntar saia lengkapin, gw capeeeeee
             playerAction.action = PlayerActions.FORWARD;
         }
     }
 
     // private void runLargeEnemies(GameObject enemy, PlayerAction playerAction) {
-
     // }
 
 }
-<<<<<<< HEAD
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-=======
->>>>>>> a216ccbcb33d4ef261e2a0e6a216fd127ff84927
