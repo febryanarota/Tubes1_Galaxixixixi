@@ -60,7 +60,7 @@ public class BotService {
 
             // SHIELD MSH PROTO
         } else if (bot.getSize() > 20 && !listTorpedo.isEmpty() &&
-                getDistanceBetween(bot, listTorpedo.get(0)) <= 60
+                getDistanceBetween(bot, listTorpedo.get(0)) <= 120
                 && listTorpedo.get(0).currentHeading >= ((getHeadingBetween(
                         listTorpedo.get(0), bot)) - calculateHeadingRange(listTorpedo.get(0), bot))
                 && listTorpedo.get(0).currentHeading <= ((getHeadingBetween(
