@@ -81,7 +81,7 @@ public class BotService {
                     } else if (enemy.size > bot.size && getDistanceBetween(enemy) - bot.size - enemy.size <= 100) {
                         playerAction.action = PlayerActions.FORWARD;
                         playerAction.heading = (getHeadingBetween(enemy) + 180) % 360;
-                        if(isThereGas()){
+                        if (isThereGas()) {
                             playerAction.action = PlayerActions.FORWARD;
                             playerAction.heading = (playerAction.heading + 120) % 360;
                         }
@@ -93,10 +93,10 @@ public class BotService {
                 }
 
                 // Bot besar, ada musuh mendekat
-                if (bot.size > 1.5 * enemy.size && getDistanceBetween(enemy) <= 100) { 
+                if (bot.size > 1.5 * enemy.size && getDistanceBetween(enemy) <= 100) {
                     playerAction.action = PlayerActions.FORWARD;
                     playerAction.heading = getHeadingBetween(enemy);
-                    if(isThereGas()){
+                    if (isThereGas()) {
                         playerAction.action = PlayerActions.FORWARD;
                         playerAction.heading = (playerAction.heading + 120) % 360;
                     }
@@ -104,7 +104,6 @@ public class BotService {
                     playerAction.action = PlayerActions.FIRETORPEDOES;
                     playerAction.heading = getHeadingBetween(enemyList.get(0));
                 }
-                
 
                 if (fireSupernova == true) {
                     playerAction.action = PlayerActions.DETONATESUPERNOVA;
@@ -119,7 +118,7 @@ public class BotService {
 
                 // Memastikan bot tidak keluar arena
                 double distanceFromWorldCenter = getDistanceBetween(gameState.world.getCenterPoint(), bot);
-                if (distanceFromWorldCenter + 1.5 * bot.size + bot.speed * 10 > gameState.world.getRadius()) { 
+                if (distanceFromWorldCenter + 1.5 * bot.size + bot.speed * 10 > gameState.world.getRadius()) {
                     playerAction.heading = getHeadingBetween(gameState.world.getCenterPoint());
                     playerAction.action = PlayerActions.FORWARD;
                 }
@@ -187,13 +186,14 @@ public class BotService {
                 }
             }
         }
-        
-        // tidak ada lagi target makanan yang memungkinkan (asumsi sudah late game), bot bergerak ke tengah
+
+        // tidak ada lagi target makanan yang memungkinkan (asumsi sudah late game), bot
+        // bergerak ke tengah
         if (Target == null) {
             playerAction.heading = getHeadingBetween(gameState.world.getCenterPoint());
             playerAction.action = PlayerActions.FORWARD;
         }
-        
+
     }
 
     // memeriksa apakah ada gas cloud atau asteroids pada jalan menuju target
@@ -229,13 +229,13 @@ public class BotService {
         }
     }
 
-    private boolean isThereGas () {
-        List <GameObject> gasCloud = nearestObjectList(4);
-        List <GameObject> asteroids = nearestObjectList(5);
-        List <GameObject> obstacles = Stream.concat(gasCloud.stream(), asteroids.stream()).toList();
+    private boolean isThereGas() {
+        List<GameObject> gasCloud = nearestObjectList(4);
+        List<GameObject> asteroids = nearestObjectList(5);
+        List<GameObject> obstacles = Stream.concat(gasCloud.stream(), asteroids.stream()).toList();
 
         for (GameObject obs : obstacles) {
-            if (getHeadingBetween(obs)- bot.currentHeading <= 45 && getDistanceBetween(obs) <= 100 + 5 * bot.speed) {
+            if (getHeadingBetween(obs) - bot.currentHeading <= 45 && getDistanceBetween(obs) <= 100 + 5 * bot.speed) {
                 return true;
             }
         }
@@ -395,47 +395,35 @@ public class BotService {
 
     private PlayerAction escapeInGass(GameObject gasAsteroid, PlayerAction playerAction, int code) {
         // hitung jarak terdekat bot keluar dari gasscloud (lingkaran)
-
-        var triangleX = Math.abs(gasAsteroid.getPosition().x - bot.getPosition().x);
-        var triangleY = Math.abs(gasAsteroid.getPosition().y - gasAsteroid.getPosition().y);
-        var o1o2 = Math.sqrt(triangleX * triangleX + triangleY * triangleY);
         double backDegree = 180 + bot.currentHeading;
-        double jarakTerdekat = gasAsteroid.getSize() - o1o2 + bot.getSize();
         double closestExitDeg = 180 + (toDegrees(Math.atan2(gasAsteroid.getPosition().y - bot.getPosition().y,
                 gasAsteroid.getPosition().x - bot.getPosition().x) + 360) % 360);
-        GameObject temp = bot;
-        List<GameObject> enemyList = nearestEnemyFromObject(temp);
+        List<GameObject> enemyList = nearestEnemyFromObject(bot);
         List<GameObject> gases = nearestObjectList(4);
         List<GameObject> asteroid = nearestObjectList(5);
-        // List<GameObject> asteroid = nearestObjectList(5);
-        // if (jarakTerdekat > bot.speed) {
-        temp.currentHeading = (int) closestExitDeg;
-        // int xtemp = (int) Math.cos(Math.toRadians(closestExitDeg)) * temp.getSpeed();
-        // int ytemp = (int) Math.sin(closestExitDeg) * temp.getSpeed();
-        // Position xytemp = new Position(xtemp, ytemp);
-        // temp.setPosition(xytemp);
+        playerAction.heading = (int) closestExitDeg;
         for (GameObject enemy : enemyList) {
-            // ini anggap gaada perubahan ukuran pas jalan
-            if (isColliding(temp, enemy, temp.getSpeed()) && enemy.getSize() > temp.getSize()) {
+            if (isColliding(bot, enemy, bot.getSpeed()) && enemy.getSize() > bot.getSize()) {
                 playerAction.heading = (int) backDegree;
                 break;
             }
         }
         for (GameObject gas : gases) {
             if (gasAsteroid.getId() != gas.getId()) {
-                if (isColliding(temp, gas, 2 * temp.getSpeed())) {
+                if (isColliding(bot, gas, 2 * bot.getSpeed())) {
                     playerAction.heading = (int) backDegree;
                     break;
                 }
             }
         }
         for (GameObject ast : asteroid) {
-            if (isColliding(temp, ast, 2 * temp.getSpeed())) {
+            if (isColliding(bot, ast, 2 * bot.getSpeed())) {
                 playerAction.heading = (int) backDegree;
                 break;
             }
 
         }
+        playerAction.action = PlayerActions.FORWARD;
         return playerAction;
     }
 
