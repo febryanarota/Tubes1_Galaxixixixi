@@ -2,10 +2,8 @@ package Services;
 
 import Enums.*;
 import Models.*;
-
 import java.util.*;
 import java.util.stream.*;
-import java.io.*;
 
 public class BotService {
     private GameObject bot;
@@ -15,7 +13,6 @@ public class BotService {
     private GameObject targetSupernova;
     private boolean ablePickup = true;
     private boolean fireSupernova = false;
-    private boolean fireTeleport = false;
 
     public BotService() {
         this.playerAction = new PlayerAction();
@@ -41,14 +38,10 @@ public class BotService {
     public void computeNextPlayerAction(PlayerAction playerAction) {
         playerAction.action = PlayerActions.FORWARD;
         List<GameObject> gases = nearestObjectList(4);
-        GameObject Target = null;
-        // cek apakah dlm pengaruh gas cloud
-        List<GameObject> asteroid = nearestObjectList(5);
-        List<GameObject> superFoodList = nearestObjectList(7);
-        List<GameObject> foodList = nearestObjectList(2);
         List<GameObject> enemyList = nearestEnemyFromObject(bot);
         List<GameObject> listTorpedo = nearestObjectList(6);
 
+        // cek apakah dlm pengaruh gas cloud
         if (bot.underEffect(4)) {
             for (GameObject gas : gases) {
                 double d = c1c2(bot, gas);
@@ -69,9 +62,7 @@ public class BotService {
 
         } else {
             if (!gameState.getGameObjects().isEmpty()) {
-                List<GameObject> gasCloud = nearestObjectList(4);
                 GameObject enemy = enemyList.get(0);
-
                 findFood();
                 if (ablePickup) {
                     findSuperNova();
@@ -94,20 +85,12 @@ public class BotService {
                 } else if (bot.size < 40 && getDistanceBetween(enemy) <= 100) {
                     playerAction.action = PlayerActions.FORWARD;
                     playerAction.heading = (getHeadingBetween(enemy) + 180) % 360;
-                    // if (isThereGas()) {
-                    // playerAction.action = PlayerActions.FORWARD;
-                    // playerAction.heading = (playerAction.heading + 120) % 360;
-                    // }
                 }
 
                 // Bot besar, ada musuh mendekat
                 if (bot.size > 1.5 * enemy.size && getDistanceBetween(enemy) <= 100) {
                     playerAction.action = PlayerActions.FORWARD;
                     playerAction.heading = getHeadingBetween(enemy);
-                    // if (isThereGas()) {
-                    // playerAction.action = PlayerActions.FORWARD;
-                    // playerAction.heading = (playerAction.heading + 120) % 360;
-                    // }
                 } else if (bot.size > 200 && bot.TorpedoSalvoCount > 0) { // Bot udah besar, tembak musuh paling dekat
                     playerAction.action = PlayerActions.FIRETORPEDOES;
                     playerAction.heading = getHeadingBetween(enemyList.get(0));
@@ -295,33 +278,6 @@ public class BotService {
             }
         }
     }
-
-    // private void fireTeleporter() {
-    // List<GameObject> candidateList = nearestEnemyFromObject(bot);
-    // if (candidateList.size() > 0) {
-    // for (GameObject candidate : candidateList) {
-    // if (getDistanceBetween(candidate) <= 500 && candidate.size + 60 <= bot.size)
-    // {
-    // playerAction.action = PlayerActions.FIRETELEPORT;
-    // playerAction.heading = getHeadingBetween(candidate);
-    // fireTeleport = true;
-    // break;
-    // }
-    // }
-    // }
-    // }
-
-    // private void teleport() {
-    // GameObject tele = nearestObjectList(10).get(0);
-    // List <GameObject> enemies = nearestEnemyFromObject(tele);
-    // for (GameObject enemy : enemies) {
-    // if (getDistanceBetween(enemy, tele) <= 50 && enemy.size + 60 <= bot.size) {
-    // playerAction.action = PlayerActions.TELEPORT;
-    // playerAction.heading = getHeadingBetween(enemy);
-    // break;
-    // }
-    // }
-    // }
 
     private double getDistanceBetween(GameObject object1, GameObject object2) {
         var triangleX = Math.abs(object1.getPosition().x - object2.getPosition().x);
