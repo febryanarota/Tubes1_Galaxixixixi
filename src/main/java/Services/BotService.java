@@ -77,9 +77,7 @@ public class BotService {
                     findSuperNova();
                 }
 
-
                 // Bot kecil tapi ada musuh mendekat
-
 
                 if (bot.size >= 40 && getDistanceBetween(enemy) - bot.size - enemy.size <= 500) {
                     if (bot.TorpedoSalvoCount > 0) { // tembak kalo ada salvo
@@ -97,8 +95,8 @@ public class BotService {
                     playerAction.action = PlayerActions.FORWARD;
                     playerAction.heading = (getHeadingBetween(enemy) + 180) % 360;
                     // if (isThereGas()) {
-                    //     playerAction.action = PlayerActions.FORWARD;
-                    //     playerAction.heading = (playerAction.heading + 120) % 360;
+                    // playerAction.action = PlayerActions.FORWARD;
+                    // playerAction.heading = (playerAction.heading + 120) % 360;
                     // }
                 }
 
@@ -107,8 +105,8 @@ public class BotService {
                     playerAction.action = PlayerActions.FORWARD;
                     playerAction.heading = getHeadingBetween(enemy);
                     // if (isThereGas()) {
-                    //     playerAction.action = PlayerActions.FORWARD;
-                    //     playerAction.heading = (playerAction.heading + 120) % 360;
+                    // playerAction.action = PlayerActions.FORWARD;
+                    // playerAction.heading = (playerAction.heading + 120) % 360;
                     // }
                 } else if (bot.size > 200 && bot.TorpedoSalvoCount > 0) { // Bot udah besar, tembak musuh paling dekat
                     playerAction.action = PlayerActions.FIRETORPEDOES;
@@ -118,27 +116,27 @@ public class BotService {
                     playerAction.action = PlayerActions.FORWARD;
                     playerAction.heading = getHeadingBetween(enemy);
                 }
-                
+
                 // strategi detonate supernova
                 if (fireSupernova == true) {
                     GameObject bomb = nearestObjectList(8).get(0);
                     if (nearestObjectList(8).size() > 0) {
                         if (getDistanceBetween(bomb, targetSupernova) <= 50 ||
-                            getDistanceBetween(gameState.world.getCenterPoint(), bomb) <= 200) {
+                                getDistanceBetween(gameState.world.getCenterPoint(), bomb) <= 200) {
                             playerAction.action = PlayerActions.DETONATESUPERNOVA;
                             playerAction.heading = (getHeadingBetween(bomb) + 180) % 360;
                             fireSupernova = false;
-                            
-                        } 
+
+                        }
                     }
                 }
 
                 // strategi firesupernova
                 if (bot.SupernovaAvailable == 1) {
                     List<GameObject> biggestEnemy = gameState.getPlayerGameObjects().stream()
-                        .filter(item -> item.id != bot.id)
-                        .sorted(Comparator.comparing(item -> item.size))
-                        .collect(Collectors.toList());
+                            .filter(item -> item.id != bot.id)
+                            .sorted(Comparator.comparing(item -> item.size))
+                            .collect(Collectors.toList());
                     Collections.reverse(biggestEnemy);
 
                     // mencari lawan terbesar dengan jarak >= 500
@@ -221,9 +219,9 @@ public class BotService {
                 GameObject nearestGas = nearestObjectList(candidate, (4)).get(0);
                 int normalFoodHeading = getHeadingBetween(foodList.get(0));
                 if (Math.abs(normalFoodHeading - playerAction.heading) <= 10 && !isGasBlocking(candidate)
-                    && getDistanceBetween(candidate, nearestGas) >= 100) {
-                        Target = candidate;
-                        playerAction.heading = getHeadingBetween(Target);
+                        && getDistanceBetween(candidate, nearestGas) >= 100) {
+                    Target = candidate;
+                    playerAction.heading = getHeadingBetween(Target);
                 }
             }
         }
@@ -270,13 +268,13 @@ public class BotService {
         }
     }
 
-    private boolean isThereGas () {
-        List <GameObject> gasCloud = nearestObjectList(4);
-        List <GameObject> asteroids = nearestObjectList(5);
-        List <GameObject> obstacles = Stream.concat(gasCloud.stream(), asteroids.stream()).toList();
+    private boolean isThereGas() {
+        List<GameObject> gasCloud = nearestObjectList(4);
+        List<GameObject> asteroids = nearestObjectList(5);
+        List<GameObject> obstacles = Stream.concat(gasCloud.stream(), asteroids.stream()).toList();
 
         for (GameObject obs : obstacles) {
-            if (getHeadingBetween(obs)- bot.currentHeading <= 45 && getDistanceBetween(obs) <= 100 + 5 * bot.speed) {
+            if (getHeadingBetween(obs) - bot.currentHeading <= 45 && getDistanceBetween(obs) <= 100 + 5 * bot.speed) {
                 return true;
             }
         }
@@ -288,7 +286,8 @@ public class BotService {
         if (superNovaList.size() > 0) {
             Target = superNovaList.get(0);
             GameObject enemyNearSupernova = nearestEnemyFromObject(Target).get(0);
-            if (getDistanceBetween(Target) > getDistanceBetween(Target, enemyNearSupernova) && !isThereGas() && !isGasBlocking(Target)) {
+            if (getDistanceBetween(Target) > getDistanceBetween(Target, enemyNearSupernova) && !isThereGas()
+                    && !isGasBlocking(Target)) {
                 playerAction.heading = getHeadingBetween(Target);
                 playerAction.action = PlayerActions.FORWARD;
             } else if (isThereGas()) {
@@ -298,29 +297,30 @@ public class BotService {
     }
 
     // private void fireTeleporter() {
-    //     List<GameObject> candidateList = nearestEnemyFromObject(bot);
-    //     if (candidateList.size() > 0) {
-    //         for (GameObject candidate : candidateList) {
-    //             if (getDistanceBetween(candidate) <= 500 && candidate.size + 60 <= bot.size) {
-    //                 playerAction.action = PlayerActions.FIRETELEPORT;
-    //                 playerAction.heading = getHeadingBetween(candidate);
-    //                 fireTeleport = true;
-    //                 break;
-    //             }
-    //         }
-    //     }
+    // List<GameObject> candidateList = nearestEnemyFromObject(bot);
+    // if (candidateList.size() > 0) {
+    // for (GameObject candidate : candidateList) {
+    // if (getDistanceBetween(candidate) <= 500 && candidate.size + 60 <= bot.size)
+    // {
+    // playerAction.action = PlayerActions.FIRETELEPORT;
+    // playerAction.heading = getHeadingBetween(candidate);
+    // fireTeleport = true;
+    // break;
+    // }
+    // }
+    // }
     // }
 
     // private void teleport() {
-    //     GameObject tele = nearestObjectList(10).get(0);
-    //     List <GameObject> enemies = nearestEnemyFromObject(tele);
-    //     for (GameObject enemy : enemies) {
-    //         if (getDistanceBetween(enemy, tele) <= 50 && enemy.size + 60 <= bot.size) {
-    //             playerAction.action = PlayerActions.TELEPORT;
-    //             playerAction.heading = getHeadingBetween(enemy);
-    //             break;
-    //         }
-    //     }
+    // GameObject tele = nearestObjectList(10).get(0);
+    // List <GameObject> enemies = nearestEnemyFromObject(tele);
+    // for (GameObject enemy : enemies) {
+    // if (getDistanceBetween(enemy, tele) <= 50 && enemy.size + 60 <= bot.size) {
+    // playerAction.action = PlayerActions.TELEPORT;
+    // playerAction.heading = getHeadingBetween(enemy);
+    // break;
+    // }
+    // }
     // }
 
     private double getDistanceBetween(GameObject object1, GameObject object2) {
@@ -368,7 +368,6 @@ public class BotService {
                 .collect(Collectors.toList());
         return object;
     }
-
 
     private List<GameObject> nearestObjectList(int n) {
         List<GameObject> object = gameState.getGameObjects().stream()
@@ -473,34 +472,11 @@ public class BotService {
 
     private PlayerAction escapeInGass(GameObject gasAsteroid, PlayerAction playerAction, int code) {
         // hitung jarak terdekat bot keluar dari gasscloud (lingkaran)
-        double backDegree = 180 + bot.currentHeading;
+
         double closestExitDeg = 180 + (toDegrees(Math.atan2(gasAsteroid.getPosition().y - bot.getPosition().y,
                 gasAsteroid.getPosition().x - bot.getPosition().x) + 360) % 360);
-        List<GameObject> enemyList = nearestEnemyFromObject(bot);
-        List<GameObject> gases = nearestObjectList(4);
-        List<GameObject> asteroid = nearestObjectList(5);
         playerAction.heading = (int) closestExitDeg;
-        for (GameObject enemy : enemyList) {
-            if (isColliding(bot, enemy, bot.getSpeed()) && enemy.getSize() > bot.getSize()) {
-                playerAction.heading = (int) backDegree;
-                break;
-            }
-        }
-        for (GameObject gas : gases) {
-            if (gasAsteroid.getId() != gas.getId()) {
-                if (isColliding(bot, gas, 2 * bot.getSpeed())) {
-                    playerAction.heading = (int) backDegree;
-                    break;
-                }
-            }
-        }
-        for (GameObject ast : asteroid) {
-            if (isColliding(bot, ast, 2 * bot.getSpeed())) {
-                playerAction.heading = (int) backDegree;
-                break;
-            }
 
-        }
         playerAction.action = PlayerActions.FORWARD;
         return playerAction;
     }
